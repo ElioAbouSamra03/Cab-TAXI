@@ -27,7 +27,7 @@ class MyApp extends StatelessWidget {
           ),
         ),
       ),
-      initialRoute: AppRoute.MapPage,
+      initialRoute: AppRoute.HomePage,
       getPages:AppPage.pages
     );
   }

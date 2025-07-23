@@ -3,24 +3,24 @@ import 'package:cabtaxi/Routes/AppRoute.dart';
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
 
-class Login extends GetView<Logincontroller>{
-    
+class Login extends GetView<Logincontroller> {
   bool _obscurePassword = true;
- 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Colors.white, // Main background white
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-        centerTitle: true,
-        title: const Text("Login Cab Taxi", style: TextStyle(fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.transparent, // Transparent app bar
+        elevation: 0, // Remove shadow
+        foregroundColor: Colors.black, // Back button color
+        leading: BackButton(), // Keep the back button
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Center(
           child: Card(
+            color: Colors.black, // Login card background black
             elevation: 4,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             child: Padding(
@@ -28,31 +28,57 @@ class Login extends GetView<Logincontroller>{
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text("Login",
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                      textAlign: TextAlign.center),
+                  const Text(
+                    "Login",
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
                   const SizedBox(height: 20),
-                  
-                  _buildTextField(label: "Email", hint: "Enter your email", icon: Icons.email),
+
+                  _buildTextField(
+                    label: "Email",
+                    hint: "Enter your email",
+                    icon: Icons.email,
+                  ),
                   const SizedBox(height: 12),
 
-                  // Password Field with toggle icon
-                  Text("Password", style: const TextStyle(fontWeight: FontWeight.w600)),
+                  const Text(
+                    "Password",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.white,
+                    ),
+                  ),
                   const SizedBox(height: 4),
                   TextField(
                     obscureText: _obscurePassword,
+                    style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       hintText: "Enter your password",
-                      prefixIcon: const Icon(Icons.lock),
+                      hintStyle: const TextStyle(color: Colors.black),
+                      prefixIcon: const Icon(Icons.lock, color: Colors.black),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: Colors.black,
                         ),
                         onPressed: () {
                           setState(() {
                             _obscurePassword = !_obscurePassword;
                           });
                         },
+                      ),
+                      enabledBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.white54),
+                      ),
+                      focusedBorder: const OutlineInputBorder(
+                        borderSide: BorderSide(color: Colors.white),
                       ),
                     ),
                   ),
@@ -61,25 +87,29 @@ class Login extends GetView<Logincontroller>{
                   ElevatedButton(
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text("Register", style: TextStyle(fontSize: 16)),
+                    child: const Text(
+                      "Login",
+                      style: TextStyle(fontSize: 16, color: Colors.black),
+                    ),
                   ),
-                                    SizedBox(height: 18),
+                  const SizedBox(height: 18),
                   Center(
                     child: TextButton(
-                        onPressed: (){
-                            Get.toNamed(AppRoute.Register);
-                        },
-                         child: const Text(
-                            "Dont have an account? Register here",
-                            style: TextStyle(fontSize: 16, color: Colors.blue),
-                         )
-                        
-                        ),
+                      onPressed: () {
+                        Get.toNamed(AppRoute.Register);
+                      },
+                      child: const Text(
+                        "Dont have an account? Register here",
+                        style: TextStyle(fontSize: 16, color: Colors.white),
+                      ),
+                    ),
                   )
                 ],
               ),
@@ -98,21 +128,31 @@ class Login extends GetView<Logincontroller>{
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
         const SizedBox(height: 4),
         TextField(
+          style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
             hintText: hint,
-            prefixIcon: Icon(icon),
+            hintStyle: const TextStyle(color: Colors.black),
+            prefixIcon: Icon(icon, color: Colors.black),
+            enabledBorder: const OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.white54),
+            ),
+            focusedBorder: const OutlineInputBorder(
+              borderSide: BorderSide(color: Colors.white),
+            ),
           ),
         ),
       ],
     );
   }
-
-
-    
 }
 
-void setState(Null Function() param0) {
-}
+void setState(Null Function() param0) {}
