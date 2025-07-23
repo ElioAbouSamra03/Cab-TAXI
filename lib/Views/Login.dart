@@ -75,7 +75,7 @@ class Login extends GetView<Logincontroller>{
                             Get.toNamed(AppRoute.Register);
                         },
                          child: const Text(
-                            "If you dont have an account. Register here",
+                            "Dont have an account? Register here",
                             style: TextStyle(fontSize: 16, color: Colors.blue),
                          )
                         

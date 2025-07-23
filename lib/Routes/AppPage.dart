@@ -1,8 +1,10 @@
 import 'package:cabtaxi/Bindings/LoginBindings.dart';
+import 'package:cabtaxi/Bindings/MapPageBinding.dart';
 import 'package:cabtaxi/Bindings/RegistrationBinding.dart';
 import 'package:cabtaxi/Routes/AppRoute.dart';
 import 'package:cabtaxi/Views/Login.dart';
 import 'package:cabtaxi/Views/Registration.dart';
+import 'package:cabtaxi/Views/MapPage.dart';
 import 'package:get/get_navigation/get_navigation.dart';
 
 class AppPage{
@@ -16,6 +18,11 @@ GetPage(
   name: AppRoute.login,
   page: () => Login(),
   binding: Loginbindings(),
+),
+GetPage(
+  name: AppRoute.MapPage,
+  page: () => MapPage(),
+  binding: MapPagebindings(),
 ),
 ];
 

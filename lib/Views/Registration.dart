@@ -81,7 +81,7 @@ class Registration extends GetView<RegistrationController>{
                             Get.toNamed(AppRoute.login);
                         },
                          child: const Text(
-                            "If you already have an account. Login here",
+                            "Already have an account? Login here",
                             style: TextStyle(fontSize: 16, color: Colors.blue),
                          )
                         
