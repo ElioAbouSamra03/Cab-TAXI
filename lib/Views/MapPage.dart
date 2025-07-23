@@ -1,8 +1,8 @@
 import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:geocoding/geocoding.dart' as geo;
 
 class MapPage extends StatefulWidget {
@@ -27,25 +27,21 @@ class _MapPageState extends State<MapPage> {
   String _estimatedFare = 'N/A';
 
   final Set<Polyline> _polylines = {};
-  final List<LatLng> _polylineCoordinates = [];
-
-  final String _googleApiKey = 'AIzaSyDg5cETuPmoR49dv4K3l3_jxNcH2hlphrU'; // Replace with your API key
 
   Future<LatLng?> _geocodeAddress(String address) async {
     try {
-      print('Geocoding: $address');
       List<geo.Location> locations = await geo.locationFromAddress(address);
       if (locations.isNotEmpty) {
         final loc = locations.first;
         return LatLng(loc.latitude, loc.longitude);
       }
     } catch (e) {
-      print('Geocoding failed ($address): $e');
+      print('Geocoding failed: $e');
     }
     return null;
   }
 
-  void _calculateFare() async {
+  Future<void> _calculateFare() async {
     final pickupText = _pickupController.text.trim();
     final dropText = _dropoffController.text.trim();
 
@@ -62,84 +58,105 @@ class _MapPageState extends State<MapPage> {
       return;
     }
 
-    final url = Uri.parse(
-      'https://maps.googleapis.com/maps/api/directions/json'
-      '?origin=${p.latitude},${p.longitude}'
-      '&destination=${d.latitude},${d.longitude}'
-      '&mode=driving'
-      '&key=$_googleApiKey',
-    );
+    await _drawRoadPolyline(p, d);
+    _moveCameraToBounds(p, d);
 
-    print('Requesting directions from: $url');
-
-    final response = await http.get(url);
-    if (response.statusCode != 200) {
-      _showError('Directions API error: ${response.statusCode}');
-      return;
-    }
-
-    final data = json.decode(response.body);
-    final status = data['status'];
-    if (status != 'OK') {
-      _showError('Directions error: $status\n${data['error_message'] ?? ""}');
-      return;
-    }
-
-    if (data['routes'] == null || data['routes'].isEmpty) {
-      _showError('No route found');
-      return;
-    }
-
-    final route = data['routes'][0];
-    final leg = route['legs'][0];
-    final distanceMeters = leg['distance']['value'] as num;
-    final durationText = leg['duration']['text'] as String;
-    final encodedPoly = route['overview_polyline']['points'] as String;
-
-    _drawPolyline(encodedPoly);
-    _moveCameraToBounds(route);
-
-    final double distanceKm = distanceMeters / 1000;
-    const int baseFare = 100000;
-    const int perKmFare = 50000;
-    var fare = baseFare + (distanceKm * perKmFare).round();
+    final distance = _calculateDistance(p.latitude, p.longitude, d.latitude, d.longitude);
+    const baseFare = 100000;
+    const perKmFare = 50000;
+    var fare = baseFare + (distance * perKmFare).round();
     fare = (fare / 250).round() * 250;
+
+    final estimatedTime = '${(distance / 30 * 60).round()} mins';
 
     setState(() {
       _routeInfo = '$pickupText → $dropText';
-      _estimatedTime = durationText;
+      _estimatedTime = estimatedTime;
       _estimatedFare = '$fare LBP';
     });
   }
 
-  void _drawPolyline(String encoded) {
-    final List<PointLatLng> points = PolylinePoints.decodePolyline(encoded); // ✅ FIXED
+  Future<void> _drawRoadPolyline(LatLng start, LatLng end) async {
+    final url = Uri.parse(
+      'https://router.project-osrm.org/route/v1/driving/${start.longitude},${start.latitude};${end.longitude},${end.latitude}?overview=full&geometries=polyline',
+    );
 
-    _polylineCoordinates.clear();
-    for (var point in points) {
-      _polylineCoordinates.add(LatLng(point.latitude, point.longitude));
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final geometry = data['routes'][0]['geometry'];
+      final points = _decodePolyline(geometry);
+
+      setState(() {
+        _polylines.clear();
+        _polylines.add(
+          Polyline(
+            polylineId: const PolylineId('route'),
+            points: points,
+            width: 5,
+            color: Colors.deepPurple,
+          ),
+        );
+      });
+    } else {
+      _showError('Failed to load route from OSRM');
     }
-
-    setState(() {
-      _polylines.clear();
-      _polylines.add(
-        Polyline(
-          polylineId: const PolylineId('route'),
-          points: _polylineCoordinates,
-          width: 5,
-          color: Colors.deepPurple,
-        ),
-      );
-    });
   }
 
-  void _moveCameraToBounds(Map<String, dynamic> route) {
-    final b = route['bounds'];
-    final ne = b['northeast'];
-    final sw = b['southwest'];
+  List<LatLng> _decodePolyline(String encoded) {
+    List<LatLng> polyline = [];
+    int index = 0, len = encoded.length;
+    int lat = 0, lng = 0;
+
+    while (index < len) {
+      int b, shift = 0, result = 0;
+      do {
+        b = encoded.codeUnitAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      int dlat = ((result & 1) != 0) ? ~(result >> 1) : (result >> 1);
+      lat += dlat;
+
+      shift = 0;
+      result = 0;
+      do {
+        b = encoded.codeUnitAt(index++) - 63;
+        result |= (b & 0x1f) << shift;
+        shift += 5;
+      } while (b >= 0x20);
+      int dlng = ((result & 1) != 0) ? ~(result >> 1) : (result >> 1);
+      lng += dlng;
+
+      polyline.add(LatLng(lat / 1E5, lng / 1E5));
+    }
+
+    return polyline;
+  }
+
+  double _calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    const R = 6371; // Earth radius in km
+    double dLat = _degToRad(lat2 - lat1);
+    double dLon = _degToRad(lon2 - lon1);
+    double a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(_degToRad(lat1)) * cos(_degToRad(lat2)) *
+            sin(dLon / 2) * sin(dLon / 2);
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+    return R * c;
+  }
+
+  double _degToRad(double deg) => deg * pi / 180;
+
+  void _moveCameraToBounds(LatLng p1, LatLng p2) {
     final bounds = LatLngBounds(
-      northeast: LatLng(ne['lat'], ne['lng']),
-      southwest: LatLng(sw['lat'], sw['lng']),
+      northeast: LatLng(
+        max(p1.latitude, p2.latitude),
+        max(p1.longitude, p2.longitude),
+      ),
+      southwest: LatLng(
+        min(p1.latitude, p2.latitude),
+        min(p1.longitude, p2.longitude),
+      ),
     );
     _mapController?.animateCamera(CameraUpdate.newLatLngBounds(bounds, 50));
   }

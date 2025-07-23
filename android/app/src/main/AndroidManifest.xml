@@ -6,11 +6,11 @@
         android:label="cabtaxi"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
-        
-        <meta-data
-    android:name="com.google.android.geo.API_KEY"
-    android:value="AIzaSyCiObU2M6CnHJxOWPLzLG0ZPaP5Ij1gkDI" />
 
+        <meta-data
+        android:name="com.google.android.geo.API_KEY"
+        android:value="AIzaSyDg5cETuPmoR49dv4K3l3_jxNcH2hlphrU"/>
+        
         <activity
             android:name=".MainActivity"
             android:exported="true"

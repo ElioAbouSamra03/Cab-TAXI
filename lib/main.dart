@@ -2,6 +2,7 @@ import 'package:cabtaxi/Routes/AppPage.dart';
 import 'package:cabtaxi/Routes/AppRoute.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
+import 'package:cabtaxi/Views/MapPage.dart';
 
 void main() {
   runApp(const MyApp());
