@@ -1,35 +1,27 @@
-import 'package:cabtaxi/Routes/AppPage.dart';
+import 'package:cabtaxi/Views/HomePage.dart';
 import 'package:cabtaxi/Routes/AppRoute.dart';
-import 'package:flutter/material.dart';
-import 'package:get/get_navigation/src/root/get_material_app.dart';
+import 'package:cabtaxi/Views/Login.dart';
 import 'package:cabtaxi/Views/MapPage.dart';
+import 'package:cabtaxi/Views/Registration.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(CabTaxiApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
+class CabTaxiApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'Cab Taxi Registration',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
-        useMaterial3: true,
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: Colors.white,
-          contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      ),
+      debugShowCheckedModeBanner: false,
       initialRoute: AppRoute.HomePage,
-      getPages:AppPage.pages
+      getPages: [
+        GetPage(name: AppRoute.HomePage, page: () => HomePage()),
+        GetPage(name: AppRoute.Register, page: () => Registration()),
+        GetPage(name: AppRoute.login, page: () => Login()),
+        GetPage(name: AppRoute.MapPage, page: () => MapPage()),
+      ],
     );
   }
 }
-

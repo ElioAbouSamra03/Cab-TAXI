@@ -1,26 +1,40 @@
-import 'package:cabtaxi/Controllers/LoginController.dart';
-import 'package:cabtaxi/Routes/AppRoute.dart';
-import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:cabtaxi/Routes/AppRoute.dart';
+import 'package:cabtaxi/Views/AuthService.dart';
 
-class Login extends GetView<Logincontroller> {
+class Login extends StatefulWidget {
+  @override
+  State<Login> createState() => _LoginState();
+}
+
+class _LoginState extends State<Login> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Main background white
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.transparent, // Transparent app bar
-        elevation: 0, // Remove shadow
-        foregroundColor: Colors.black, // Back button color
-        leading: BackButton(), // Keep the back button
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        foregroundColor: Colors.black,
+        leading: BackButton(),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Center(
           child: Card(
-            color: Colors.black, // Login card background black
+            color: Colors.black,
             elevation: 4,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
             child: Padding(
@@ -43,6 +57,7 @@ class Login extends GetView<Logincontroller> {
                     label: "Email",
                     hint: "Enter your email",
                     icon: Icons.email,
+                    controller: _emailController,
                   ),
                   const SizedBox(height: 12),
 
@@ -55,18 +70,17 @@ class Login extends GetView<Logincontroller> {
                   ),
                   const SizedBox(height: 4),
                   TextField(
+                    controller: _passwordController,
                     obscureText: _obscurePassword,
                     style: const TextStyle(color: Colors.white),
                     decoration: InputDecoration(
                       hintText: "Enter your password",
-                      hintStyle: const TextStyle(color: Colors.black),
-                      prefixIcon: const Icon(Icons.lock, color: Colors.black),
+                      hintStyle: const TextStyle(color: Colors.white70),
+                      prefixIcon: const Icon(Icons.lock, color: Colors.white),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                          color: Colors.black,
+                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                          color: Colors.white,
                         ),
                         onPressed: () {
                           setState(() {
@@ -74,6 +88,8 @@ class Login extends GetView<Logincontroller> {
                           });
                         },
                       ),
+                      filled: true,
+                      fillColor: Colors.black,
                       enabledBorder: const OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.white54),
                       ),
@@ -85,7 +101,7 @@ class Login extends GetView<Logincontroller> {
 
                   const SizedBox(height: 24),
                   ElevatedButton(
-                    onPressed: () {},
+                    onPressed: _handleLogin,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.black,
@@ -102,11 +118,9 @@ class Login extends GetView<Logincontroller> {
                   const SizedBox(height: 18),
                   Center(
                     child: TextButton(
-                      onPressed: () {
-                        Get.toNamed(AppRoute.Register);
-                      },
+                      onPressed: () => Get.toNamed(AppRoute.Register),
                       child: const Text(
-                        "Dont have an account? Register here",
+                        "Don't have an account? Register here",
                         style: TextStyle(fontSize: 16, color: Colors.white),
                       ),
                     ),
@@ -124,6 +138,7 @@ class Login extends GetView<Logincontroller> {
     required String label,
     required String hint,
     required IconData icon,
+    required TextEditingController controller,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,11 +152,14 @@ class Login extends GetView<Logincontroller> {
         ),
         const SizedBox(height: 4),
         TextField(
+          controller: controller,
           style: const TextStyle(color: Colors.white),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: Colors.black),
-            prefixIcon: Icon(icon, color: Colors.black),
+            hintStyle: const TextStyle(color: Colors.white70),
+            prefixIcon: Icon(icon, color: Colors.white),
+            filled: true,
+            fillColor: Colors.black,
             enabledBorder: const OutlineInputBorder(
               borderSide: BorderSide(color: Colors.white54),
             ),
@@ -153,6 +171,20 @@ class Login extends GetView<Logincontroller> {
       ],
     );
   }
-}
 
-void setState(Null Function() param0) {}
+  Future<void> _handleLogin() async {
+    final success = await AuthService.login(
+      email: _emailController.text,
+      password: _passwordController.text,
+    );
+
+    if (success) {
+      Get.snackbar("Success", "Login successful",
+          snackPosition: SnackPosition.BOTTOM);
+      Get.offAllNamed(AppRoute.MapPage); // Navigate to MapPage
+    } else {
+      Get.snackbar("Error", "Login failed",
+          snackPosition: SnackPosition.BOTTOM, backgroundColor: Colors.red);
+    }
+  }
+}
